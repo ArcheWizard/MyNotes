@@ -1,0 +1,183 @@
+/* General Styles */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Arial', sans-serif;
+    color: #333; /* Charcoal Text */
+    background-color: #F7F7F7; /* Soft Gray Background */
+}
+
+header {
+    padding: 0;
+}
+
+main {
+    flex-grow: 1;
+}
+
+footer {
+    background-color: #F7F7F7; /* Matches the body background for simplicity */
+    text-align: center;
+    color: #333; /* Charcoal */
+    font-size: 0.9rem;
+    border-top: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+/* Header Section */
+.header-section {
+    background-color: #9dccff; /* Muted Blue */
+    color: black; /* White Text for Contrast */
+    text-align: center;
+    padding: 60px 0;
+}
+
+.header-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.header-section p {
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+.header-section .link-button {
+    background-color: #0958d7; /* Light Olive */
+    color: white; /* White Text */
+    border: none;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 10px 25px;
+    border-radius: 25px;
+    transition: background-color 0.3s ease;
+}
+
+.header-section .link-button:hover {
+    background-color: #101282; /* Slightly Darker Olive */
+}
+
+/* Features Section */
+.features-section {
+    background-color: #ffffff; /* White for Simplicity */
+    padding: 50px 0;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.feature-box {
+    border-radius: 10px;
+    background-color: #F7F7F7; /* Matches the body background */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle Shadow */
+    padding: 15px;
+    margin: 15px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-box:hover {
+    transform: translateY(-5px); /* Lift Effect */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.feature-box h5 {
+    font-weight: bold;
+    color: #0958d7; /* Muted Blue for Consistency */
+    margin-bottom: 10px;
+}
+
+.feature-box p {
+    font-size: 0.9rem;
+    color: #555; /* Muted Gray Text */
+}
+
+/* Notes Section */
+.notes-section {
+    background-color: #ffffff; /* White for Clean Layout */
+    padding: 0;
+}
+
+.card {
+    border-radius: 10px;
+    background-color: #F7F7F7; /* Matches Soft Gray */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle Shadow */
+    margin-bottom: 15px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Lift Effect */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #0958d7; /* Muted Blue for Titles */
+}
+
+.card-text {
+    color: #555; /* Muted Gray */
+    font-size: 0.9rem;
+}
+
+.card .btn {
+    background-color: #0958d7; /* Light Olive */
+    color: white;
+    font-size: 0.85rem;
+    border-radius: 25px;
+    padding: 8px 20px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.card .btn:hover {
+    background-color: #0958d7; /* Slightly Darker Olive */
+}
+
+/* Link Button (General) */
+.link-button {
+    background-color: #0958d7; /* Blue */
+    color: white;
+    border: none;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 8px 20px;
+    border-radius: 25px;
+    transition: background-color 0.3s ease;
+}
+
+.link-button:hover {
+    background-color: #101282; /* Slightly Darker Blue */
+}
+
+.cardshadow-sm{
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Alternative to margin, adds space between items */
+}
+
+/* Typography */
+h1, h2, p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+p {
+    font-size: 0.95rem;
+    color: #555; /* Muted Gray */
+}
+

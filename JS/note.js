@@ -34,7 +34,7 @@ function deleteNote(noteId) {
 function popup(existingText = "", noteId = null) {
     const popupHTML = `
         <div id="popupContainer" class="card shadow-sm">
-            <div class="card-body">
+            <div class="card-body" id="editor">
                 <h5>${noteId ? "Edit Note" : "New Note"}</h5>
                 <textarea id="note-text" class="form-control" placeholder="Enter your note...">${existingText}</textarea>
                 <div class="mt-3">

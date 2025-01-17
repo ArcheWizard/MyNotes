@@ -1,14 +1,15 @@
 // Fetch notes from server and render them in the DOM
 function loadNotes() {
-    $.get('/fetch-notes', function (notes) {
-        let noteHTML = '';
+    $('#notelist').html('<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>');
 
+    $.get('logged_in.php?action=fetchNotes', function (notes) {
+        let noteHTML = '';
         notes.forEach(note => {
             noteHTML += `
                 <div class="note card mb-3 shadow-sm" id="note-${note.id}">
                     <div class="card-body">
                         <div class="note-content">
-                            ${sanitizeHTML(note.content)} <!-- Render sanitized HTML -->
+                            ${sanitizeHTML(note.content)}
                         </div>
                         <div class="mt-3 d-flex justify-content-end">
                             <button class="btn btn-primary me-2" onclick="popup('${escapeHTML(note.content)}', ${note.id})">Edit</button>
@@ -22,6 +23,7 @@ function loadNotes() {
         $('#notelist').html(noteHTML);
     });
 }
+
 
 
 

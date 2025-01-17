@@ -13,6 +13,12 @@ if (!isset($_SESSION["user_email"])) {
 // Get logged-in user's email
 $user_email = $_SESSION["user_email"];
 
+// Fetch notes for display (add this block here)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'fetch-notes') {
+    fetchNotes($conn, $user_email);
+    exit; // Stop further execution
+}
+
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
@@ -55,6 +61,37 @@ function fetchNotes($conn, $user_email) {
     } else {
         echo '<p class="text-muted">No notes to display. Add a new note!</p>';
     }
+}
+
+function fetchNotes2($conn, $user_email) {
+    // Prepare the SQL query to fetch notes for the given user
+    $query = "SELECT * FROM note WHERE email = :email";
+    
+    // Prepare the statement
+    $stmt = $conn->prepare($query);
+    
+    // Bind the parameter (user email)
+    $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
+    
+    // Execute the statement
+    $stmt->execute();
+    
+    // Get the result
+    $result = $stmt->get_result();
+    
+    // Initialize an array to hold the notes
+    $notes = [];
+    
+    // Fetch each note and store it in the array
+    while ($row = $result->fetch_assoc()) {
+        $notes[] = $row; // Add each note to the array
+    }
+    
+    // Set the content type to JSON
+    header('Content-Type: application/json');
+    
+    // Return notes as a JSON array
+    echo json_encode($notes);
 }
 
 

@@ -18,12 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         $action = $_POST['action'];
         if ($action === 'create') {
-            $text = $_POST['text'];
+            $text = urldecode($_POST['text']);
             $sql = "INSERT INTO note (email, text) VALUES ('$user_email', '$text')";
             $conn->query($sql);
         } elseif ($action === 'edit') {
             $id = $_POST['id'];
-            $text = $_POST['text'];
+            $text = urldecode($_POST['text']);
             $sql = "UPDATE note SET text='$text' WHERE id=$id AND email='$user_email'";
             $conn->query($sql);
         } elseif ($action === 'delete') {
@@ -41,12 +41,13 @@ function fetchNotes($conn, $user_email) {
     $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
     $stmt->execute();
 
-    if ($stmt->rowCount() >0) {
+    if ($stmt->rowCount() > 0) {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            // Output the note content as raw HTML for rendering
             echo '<div class="card shadow-sm mb-3">
                     <div class="card-body">
-                        <p>' . htmlspecialchars($row['text']) . '</p>
-                        <button class="btn btn-primary btn-sm" onclick="popup(\'' . htmlspecialchars($row['text']) . '\', ' . $row['id'] . ')">Edit</button>
+                        <div class="note-content">' . $row['text'] . '</div> <!-- Display raw HTML -->
+                        <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ')">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteNote(' . $row['id'] . ')">Delete</button>
                     </div>
                   </div>';
@@ -55,6 +56,8 @@ function fetchNotes($conn, $user_email) {
         echo '<p class="text-muted">No notes to display. Add a new note!</p>';
     }
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -67,17 +70,8 @@ function fetchNotes($conn, $user_email) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="../CSS/style.css">
     <script src="../JS/note.js"></script>
-
-    <!-- Include stylesheet -->
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
-    <!-- Include the Quill library -->
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-    <!-- Initialize Quill editor -->
-    <script>
-    const quill = new Quill('#editor', {
-        theme: 'snow'
-    });
-    </script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm py-2">

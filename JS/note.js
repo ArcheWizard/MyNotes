@@ -1,55 +1,28 @@
 // Fetch notes from server and render them in the DOM
-function loadNotes() {
-    $('#notelist').html('<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>');
-
-    $.get('logged_in.php?action=fetchNotes', function (notes) {
-        let noteHTML = '';
-        notes.forEach(note => {
-            noteHTML += `
-                <div class="note card mb-3 shadow-sm" id="note-${note.id}">
-                    <div class="card-body">
-                        <div class="note-content">
-                            ${sanitizeHTML(note.content)}
-                        </div>
-                        <div class="mt-3 d-flex justify-content-end">
-                            <button class="btn btn-primary me-2" onclick="popup('${escapeHTML(note.content)}', ${note.id})">Edit</button>
-                            <button class="btn btn-danger" onclick="deleteNote(${note.id})">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        $('#notelist').html(noteHTML);
+function loadNotes(){
+    $.get(window.location.href, function (data) {
+        const notelist = $(data).find('#notelist').html();
+        $('#notelist').html(notelist);
     });
 }
 
-
-
-
-
 // Create or edit a note
 function createNote(noteId = null) {
-    // Fetch content from the Quill editor
     const noteContent = window.quillInstance.root.innerHTML.trim();
-    if (noteContent === "<p><br></p>") { // Check for empty content
+    if (noteContent === "<p><br></p>") {
         alert("Note text cannot be empty!");
         return;
     }
 
-    // Determine action type
     const action = noteId ? "edit" : "create";
 
-    // Send the content to the server
     $.post(window.location.href, { action: action, id: noteId, text: encodeURIComponent(noteContent) }, function () {
-        loadNotes();
+        loadNotes(); // Ensure notes are reloaded after creating/editing
         closePopup();
+    }).fail(function() {
+        alert("An error occurred while saving the note. Please try again.");
     });
 }
-
-
-
-
 
 // Delete a note
 function deleteNote(noteId) {
@@ -97,9 +70,6 @@ function popup(existingText = "", noteId = null) {
     // Save the Quill instance globally for later use
     window.quillInstance = quill;
 }
-
-
-
 
 // Close popup
 function closePopup() {

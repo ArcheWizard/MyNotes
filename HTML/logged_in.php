@@ -63,38 +63,6 @@ function fetchNotes($conn, $user_email) {
     }
 }
 
-function fetchNotes2($conn, $user_email) {
-    // Prepare the SQL query to fetch notes for the given user
-    $query = "SELECT * FROM note WHERE email = :email";
-    
-    // Prepare the statement
-    $stmt = $conn->prepare($query);
-    
-    // Bind the parameter (user email)
-    $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
-    
-    // Execute the statement
-    $stmt->execute();
-    
-    // Get the result
-    $result = $stmt->get_result();
-    
-    // Initialize an array to hold the notes
-    $notes = [];
-    
-    // Fetch each note and store it in the array
-    while ($row = $result->fetch_assoc()) {
-        $notes[] = $row; // Add each note to the array
-    }
-    
-    // Set the content type to JSON
-    header('Content-Type: application/json');
-    
-    // Return notes as a JSON array
-    echo json_encode($notes);
-}
-
-
 ?>
 
 <!DOCTYPE html>

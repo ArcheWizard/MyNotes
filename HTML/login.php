@@ -13,6 +13,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
+    if (!filter_var($loginEmail, FILTER_VALIDATE_EMAIL)) {
+        echo "<script>alert('Invalid login credentials..'); window.history.back();</script>";
+        exit;
+    }    
+
     // Prepare the SQL statement to find the user
     $stmt = $conn->prepare("SELECT * FROM client WHERE email = :email");
     
@@ -22,23 +27,41 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Fetch the user
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    if (!$user) {
+        echo "Invalid login credentials.";
+        exit;
+    }
+
     $hashed_password = (string)$user['password'];
 
     if (password_verify($loginPassword, $hashed_password)) {
         // Password is correct
         session_start();
 
+        // Generate CSRF token if not set
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32)); // Generate a secure random token
+        }
+
         // Regenerate session ID to prevent session fixation
         session_regenerate_id(true);
+
+        session_set_cookie_params([
+            'secure' => true, // Ensures the cookie is sent over HTTPS only
+            'httponly' => true, // Prevents JavaScript from accessing the cookie
+            'samesite' => 'Strict', // Protects against CSRF
+        ]);        
 
         $_SESSION["user_name"] = $user["name"];
         $_SESSION["user_email"] = $user["email"]; // You may want to store the email too
 
         // Redirect to the homepage or another page
         header("Location: logged_in.php");
+        exit;
+
     } else {
         // Invalid credentials
-        echo "Invalid email or password.";
+        echo "Invalid login credentials.";
     }
 }
 ?>
@@ -59,6 +82,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="container mt-5" name="login">
         <h2 class="text-center">Login</h2>
             <form method="POST" class="needs-validation" novalidate>
+
+                <!-- CSRF Token Field -->
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                 
                 <!-- Email Field -->
                 <div class="mb-3">

@@ -2,6 +2,13 @@
 
 include("../PHP/connect.php");
 
+session_start();
+
+// Generate CSRF token if not set
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32)); // Generate a secure random token
+}
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name']);
@@ -16,12 +23,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo "Invalid email format.";
+        echo "Invalid login credentials.";
         exit();
     }
 
     if ($password !== $confirmPassword) {
-        echo "Passwords do not match.";
+        echo "Invalid login credentials.";
         exit();
     }
 
@@ -35,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            echo "Email already exists. Please use a different email.";
+            echo "Invalid login credentials.";
         } else {
             // Insert data into the database
             $stmt = $conn->prepare("INSERT INTO client (name, email, password) VALUES (:name, :email, :password)");
@@ -74,6 +81,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container mt-5" id="signup">
         <h2 class="text-center">Sign Up</h2>
         <form method="POST" class="needs-validation" novalidate>
+
+            <!-- CSRF Token Field -->
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
             <!-- Name Field -->
             <div class="mb-3">
                 <label for="name" class="form-label">Name</label>

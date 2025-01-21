@@ -24,13 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         $action = $_POST['action'];
         if ($action === 'create') {
+            $noteTitle = $_POST['title'];
             $text = urldecode($_POST['text']);
-            $sql = "INSERT INTO note (email, text) VALUES ('$user_email', '$text')";
+            $sql = "INSERT INTO note (email, title, text) VALUES ('$user_email', '$noteTitle', '$text')";
             $conn->query($sql);
         } elseif ($action === 'edit') {
             $id = $_POST['id'];
+            $noteTitle = $_POST['title'];
             $text = urldecode($_POST['text']);
-            $sql = "UPDATE note SET text='$text' WHERE id=$id AND email='$user_email'";
+            $sql = "UPDATE note SET title='$noteTitle' , text='$text' WHERE id=$id AND email='$user_email'";
             $conn->query($sql);
         } elseif ($action === 'delete') {
             $id = $_POST['id'];
@@ -52,8 +54,9 @@ function fetchNotes($conn, $user_email) {
             // Output the note content as raw HTML for rendering
             echo '<div class="card shadow-sm mb-3">
                     <div class="card-body">
+                        <h3>' . htmlspecialchars($row['title']) . '</h3>
                         <div class="note-content">' . $row['text'] . '</div> <!-- Display raw HTML -->
-                        <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ')">Edit</button>
+                        <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ', `' . htmlspecialchars($row['title'], ENT_QUOTES) . '`)">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteNote(' . $row['id'] . ')">Delete</button>
                     </div>
                   </div>';
@@ -99,6 +102,17 @@ function fetchNotes($conn, $user_email) {
                             <h5 class="card-title">Add Note</h5>
                         </div>
                     </div>
+                    <!--
+                    <div id="options" class="card shadow-sm mb-3">
+                        <div class="card-header">
+                            <select id="sortTitle" class="form-control" onchange="sortNotesByTitle()">
+                                <option value="Default">Default</option>
+                                <option value="asc">Sort by Title (A-Z)</option>
+                                <option value="desc">Sort by Title (Z-A)</option>
+                            </select>
+                        </div>
+                    </div>
+                    -->
                     <!-- Notes List -->
                     <div id="notelist">
                         <!-- Notes will be dynamically added here -->

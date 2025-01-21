@@ -7,7 +7,6 @@ html, body {
     font-family: 'Arial', sans-serif;
     color: #333; /* Charcoal Text */
     background-color: #F7F7F7; /* Soft Gray Background */
-    overflow-y: auto;
 }
 
 header {
@@ -100,11 +99,6 @@ footer {
     padding: 0;
 }
 
-/*#notelist {
-    max-height: 80vh; /* Adjust the height as needed 
-    overflow-y: auto; /* Enable vertical scrolling 
-}*/
-
 .card {
     border-radius: 10px;
     background-color: #F7F7F7; /* Matches Soft Gray */
@@ -135,6 +129,7 @@ footer {
     font-size: 0.85rem;
     border-radius: 25px;
     padding: 8px 20px;
+    margin-top: 15px;
     text-decoration: none;
     transition: background-color 0.3s ease;
 }

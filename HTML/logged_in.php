@@ -23,48 +23,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         $action = $_POST['action'];
+
         if ($action === 'create') {
+            // Handle 'create' action
             $noteTitle = $_POST['title'];
             $text = urldecode($_POST['text']);
-            $sql = "INSERT INTO note (email, title, text) VALUES ('$user_email', '$noteTitle', '$text')";
-            $conn->query($sql);
+
+            // Use named placeholders for prepared statements
+            $sql = $conn->prepare("INSERT INTO note (email, title, text) VALUES (:email, :title, :text)");
+            $sql->execute([
+                ':email' => $user_email,
+                ':title' => $noteTitle,
+                ':text' => $text
+            ]);
         } elseif ($action === 'edit') {
+            // Handle 'edit' action
             $id = $_POST['id'];
             $noteTitle = $_POST['title'];
             $text = urldecode($_POST['text']);
-            $sql = "UPDATE note SET title='$noteTitle' , text='$text' WHERE id=$id AND email='$user_email'";
-            $conn->query($sql);
+
+            // Use named placeholders for prepared statements
+            $sql = $conn->prepare("UPDATE note SET title = :title, text = :text WHERE id = :id AND email = :email");
+            $sql->execute([
+                ':title' => $noteTitle,
+                ':text' => $text,
+                ':id' => $id,
+                ':email' => $user_email
+            ]);
         } elseif ($action === 'delete') {
+            // Handle 'delete' action
             $id = $_POST['id'];
-            $sql = "DELETE FROM note WHERE id=$id AND email='$user_email'";
-            $conn->query($sql);
+
+            // Use named placeholders for prepared statements
+            $sql = $conn->prepare("DELETE FROM note WHERE id = :id AND email = :email");
+            $sql->execute([
+                ':id' => $id,
+                ':email' => $user_email
+            ]);
         }
     }
     exit;
 }
 
+
 // Fetch notes for display
 function fetchNotes($conn, $user_email) {
-    $stmt = $conn->prepare("SELECT * FROM note WHERE email = :email");
-    $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
-    $stmt->execute();
+    $allowedSortOrders = ['asc', 'desc'];
+    $sortOrder = isset($_GET['sort']) && in_array(strtolower($_GET['sort']), $allowedSortOrders) ? strtoupper($_GET['sort']) : 'ASC';
+    $filter = isset($_GET['filter']) ? '%' . $_GET['filter'] . '%' : '%'; // Check for filter text and apply a wildcard for LIKE
 
-    if ($stmt->rowCount() > 0) {
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            // Output the note content as raw HTML for rendering
-            echo '<div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <h3>' . htmlspecialchars($row['title']) . '</h3>
-                        <div class="note-content">' . $row['text'] . '</div> <!-- Display raw HTML -->
-                        <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ', `' . htmlspecialchars($row['title'], ENT_QUOTES) . '`)">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteNote(' . $row['id'] . ')">Delete</button>
-                    </div>
-                  </div>';
+    $stmt = $conn->prepare("SELECT * FROM note WHERE email = :email AND title LIKE :filter ORDER BY title $sortOrder");
+    $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
+    $stmt->bindParam(':filter', $filter, PDO::PARAM_STR); // Bind the filter parameter
+
+    if ($stmt->execute()) {
+        if ($stmt->rowCount() > 0) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                echo '<div class="card shadow-sm mb-3">
+                        <div class="card-body">
+                            <h3>' . htmlspecialchars($row['title']) . '</h3>
+                            <div class="note-content">' . $row['text'] . '</div>
+                            <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ', `' . htmlspecialchars($row['title'], ENT_QUOTES) . '`)">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteNote(' . $row['id'] . ')">Delete</button>
+                        </div>
+                      </div>';
+            }
+        } else {
+            echo '<p class="text-muted">No notes to display. Add a new note!</p>';
         }
     } else {
-        echo '<p class="text-muted">No notes to display. Add a new note!</p>';
+        error_log("Query failed: " . print_r($stmt->errorInfo(), true));
     }
 }
+
+
 
 ?>
 
@@ -102,17 +134,15 @@ function fetchNotes($conn, $user_email) {
                             <h5 class="card-title">Add Note</h5>
                         </div>
                     </div>
-                    <!--
                     <div id="options" class="card shadow-sm mb-3">
                         <div class="card-header">
-                            <select id="sortTitle" class="form-control" onchange="sortNotesByTitle()">
-                                <option value="Default">Default</option>
-                                <option value="asc">Sort by Title (A-Z)</option>
-                                <option value="desc">Sort by Title (Z-A)</option>
+                            <select id="sortTitle" class="form-control" onchange="sortNotes()">
+                                <option value="ASC">Sort by Title (A-Z)</option>
+                                <option value="DESC">Sort by Title (Z-A)</option>
                             </select>
+                            <input type="text" id="titleFilter" class="form-control mt-2" placeholder="Filter by title" onkeyup="filterNotes()">
                         </div>
                     </div>
-                    -->
                     <!-- Notes List -->
                     <div id="notelist">
                         <!-- Notes will be dynamically added here -->

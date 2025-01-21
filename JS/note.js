@@ -1,13 +1,30 @@
 // Sort notes by title alphabetically
-function sortNotesByTitle() {
-    const order = $("#sortTitle").val();
-    const notes = $(".note").toArray().sort((a, b) => {
-        const titleA = $(a).find(".note-title").text().toLowerCase();
-        const titleB = $(b).find(".note-title").text().toLowerCase();
-        return order === "asc" ? titleA.localeCompare(titleB) : titleB.localeCompare(titleA);
+function sortNotes() {
+    const order = $("#sortTitle").val(); // Get selected sorting order (asc/desc)
+
+    // Send AJAX request to fetch sorted notes
+    $.get(window.location.href, { action: "fetch-notes", sort: order }, function (data) {
+        $("#notelist").html(data); // Replace the note list with the sorted data
+    }).fail(function () {
+        alert("An error occurred while sorting notes. Please try again.");
     });
-    $("#notelist").html(notes);
 }
+
+// Filter notes by title
+function filterNotes() {
+    const filterText = $("#titleFilter").val().trim(); // Get the text entered in the filter input
+
+    $.get(window.location.href, { 
+        action: "fetch-notes", 
+        filter: filterText 
+    }, function (data) {
+        $("#notelist").html(data); // Replace the note list with the filtered data
+    }).fail(function () {
+        alert("An error occurred while filtering notes. Please try again.");
+    });
+}
+
+
 
 // Fetch notes from server and render them in the DOM
 function loadNotes(){

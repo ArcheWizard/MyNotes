@@ -182,3 +182,141 @@ p {
     color: #555; /* Muted Gray */
 }
 
+/* Add these at the end of style.css */
+:root {
+    /* Light mode variables */
+    --bg-primary: #F7F7F7;
+    --text-primary: #333;
+    --card-bg: #ffffff;
+    --header-bg: #9dccff;
+    --feature-bg: #F7F7F7;
+    --border-color: #ddd;
+}
+
+[data-theme="dark"] {
+    /* Dark mode variables */
+    --bg-primary: #1a1a1a;
+    --text-primary: #ffffff;
+    --card-bg: #2d2d2d;
+    --header-bg: #1e4976;
+    --feature-bg: #2d2d2d;
+    --border-color: #404040;
+}
+
+/* Update existing styles to use variables */
+html, body, footer {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.notes-section {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.header-section {
+    background-color: var(--header-bg);
+}
+
+.card, .feature-box {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.card-text, .text-muted {
+    color: var(--text-primary) !important;
+}
+
+.footy{
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* Update these styles in style.css */
+
+/* Dark mode toggle button styles */
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    margin-left: 15px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ffffff;
+    transition: .4s;
+    border-radius: 24px;
+    border: 2px solid #ffffff;
+}
+
+.slider:before {
+    position: absolute;
+    content: "☀️";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 0px;
+    background-color: #0958d7;
+    transition: .4s;
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+input:checked + .slider {
+    background-color: #1a1a1a;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+    content: "🌙";
+    background-color: #101282;
+}
+
+/* Position the toggle button */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+
+/* For smaller screens */
+@media (max-width: 768px) {
+    .theme-switch-wrapper {
+        margin: 10px 0;
+    }
+}
+
+/* Update navbar spacing */
+.navbar .container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Add to style.css */
+.form-control {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}

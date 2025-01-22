@@ -6,11 +6,14 @@
     <title>My Notes - Home</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../CSS/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../JS/script.js"></script>
+    <script src="../JS/note.js"></script>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm py-2">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">My Notes</a>
+            <a class="navbar-brand fw-bold" href="index.php">My Notes</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -19,6 +22,12 @@
                     <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="signup.php">Sign Up</a></li>
                     <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="login.php">Login</a></li>
                     <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="contact.php">Contact Us</a></li>
+                    <li class="nav-item theme-switch-wrapper">
+                        <label class="theme-switch" for="checkbox">
+                            <input type="checkbox" id="checkbox" />
+                            <div class="slider"></div>
+                        </label>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -77,11 +86,9 @@
         </div>
     </section>
 
-    <footer class="text-center py-3 bg-light mt-auto">
+    <footer id="footy" class="text-center py-3 bg-light mt-auto">
         <p class="mb-0 text-muted">&copy; 2024 My Notes</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../JS/script.js"></script>
 </body>
 </html>

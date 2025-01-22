@@ -106,10 +106,29 @@ function popup(existingText = "", noteId = null, existingTitle = "") {
 
     $("#titleInput").focus();
 
-    // Initialize Quill editor
+    // Initialize Quill editor with theme support
     const quill = new Quill("#editor", {
         theme: "snow",
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'header': 1 }, { 'header': 2 }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'color': [] }, { 'background': [] }],
+                ['clean']
+            ]
+        }
     });
+
+    // Add dark mode support for Quill editor
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+        document.querySelector('.ql-toolbar').style.border = '1px solid #404040';
+        document.querySelector('.ql-container').style.border = '1px solid #404040';
+        document.querySelector('#editor').style.backgroundColor = '#2d2d2d';
+        document.querySelector('#editor').style.color = '#ffffff';
+    }
 
     // Populate the editor with existing text if editing
     if (existingText) {
@@ -124,3 +143,36 @@ function popup(existingText = "", noteId = null, existingTitle = "") {
 function closePopup() {
     $("#popupContainer").remove();
 }
+
+// Dark mode functionality
+function initializeDarkMode(toggleSelector) {
+    const toggleSwitch = document.querySelector(toggleSelector);
+    const currentTheme = localStorage.getItem('theme');
+
+    // Apply the saved theme on page load
+    if (currentTheme) {
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        if (currentTheme === 'dark' && toggleSwitch) {
+            toggleSwitch.checked = true;
+        }
+    }
+
+    // Theme switch handler
+    function switchTheme(e) {
+        const isDarkMode = e.target.checked;
+        const theme = isDarkMode ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    }
+
+    // Add event listener for theme toggle
+    if (toggleSwitch) {
+        toggleSwitch.addEventListener('change', switchTheme);
+    }
+}
+
+// Initialize dark mode functionality
+document.addEventListener('DOMContentLoaded', () => {
+    initializeDarkMode('#checkbox');
+});
+

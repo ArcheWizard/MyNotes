@@ -113,31 +113,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function fetchNotes($conn, $user_email) {
     $allowedSortOrders = ['asc', 'desc'];
     $sortOrder = isset($_GET['sort']) && in_array(strtolower($_GET['sort']), $allowedSortOrders) ? strtoupper($_GET['sort']) : 'ASC';
-    $filter = isset($_GET['filter']) ? '%' . $_GET['filter'] . '%' : '%'; // Check for filter text and apply a wildcard for LIKE
+    $filter = isset($_GET['filter']) ? '%' . $_GET['filter'] . '%' : '%';
 
     $stmt = $conn->prepare("SELECT * FROM note WHERE email = :email AND title LIKE :filter ORDER BY title $sortOrder");
     $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
-    $stmt->bindParam(':filter', $filter, PDO::PARAM_STR); // Bind the filter parameter
+    $stmt->bindParam(':filter', $filter, PDO::PARAM_STR);
 
     if ($stmt->execute()) {
         if ($stmt->rowCount() > 0) {
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                // Fetch attachments for this note
+                $attachments = fetchAttachments($conn, $row['id']);
+                $attachmentsList = '';
+                
+                if (!empty($attachments)) {
+                    foreach ($attachments as $attachment) {
+                        $attachmentsList .= sprintf(
+                            '<div class="file-item">
+                                <span>%s</span>
+                                <button class="btn btn-sm btn-danger" onclick="deleteFile(%d, %d)">Delete</button>
+                            </div>',
+                            htmlspecialchars($attachment['file_name']),
+                            $attachment['id'],
+                            $row['id']
+                        );
+                    }
+                }
+
                 echo '<div class="card shadow-sm mb-3" data-note-id="' . $row['id'] . '">
                     <div class="card-body">
                         <div class="drag-handle">☰</div>
-                            <h3>' . htmlspecialchars($row['title']) . '</h3>
-                            <div class="note-content">' . $row['text'] . '</div>
-                            <div class="file-drop-zone">
-                                <div class="file-list"></div>
-                                <div class="drop-zone">
-                                    <span class="drop-zone__prompt">Drop files here or click to upload</span>
-                                    <input type="file" class="drop-zone__input" multiple>
-                                </div>
-                            </div>
-                            <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ', `' . htmlspecialchars($row['title'], ENT_QUOTES) . '`)">Edit</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteNote(' . $row['id'] . ')">Delete</button>
-                        </div>
-                    </div>';
+                        <h3>' . htmlspecialchars($row['title']) . '</h3>
+                        <div class="note-content">' . $row['text'] . '</div>
+                        <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ', `' . htmlspecialchars($row['title'], ENT_QUOTES) . '`)">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteNote(' . $row['id'] . ')">Delete</button>
+                    </div>
+                </div>';
             }
         } else {
             echo '<p class="text-muted">No notes to display. Add a new note!</p>';
@@ -147,7 +158,38 @@ function fetchNotes($conn, $user_email) {
     }
 }
 
+// Add this new function to fetch attachments
+function fetchAttachments($conn, $note_id) {
+    $stmt = $conn->prepare("SELECT id, file_name, file_path FROM attachments WHERE note_id = :note_id");
+    $stmt->execute([':note_id' => $note_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
+// Add this new endpoint to handle file deletion
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'deleteFile') {
+    $fileId = $_POST['fileId'];
+    
+    // First get the file path
+    $stmt = $conn->prepare("SELECT file_path FROM attachments WHERE id = :id");
+    $stmt->execute([':id' => $fileId]);
+    $file = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($file) {
+        // Delete the physical file
+        if (file_exists($file['file_path'])) {
+            unlink($file['file_path']);
+        }
+        
+        // Delete the database record
+        $stmt = $conn->prepare("DELETE FROM attachments WHERE id = :id");
+        $stmt->execute([':id' => $fileId]);
+        
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'File not found']);
+    }
+    exit;
+}
 
 ?>
 
@@ -161,8 +203,8 @@ function fetchNotes($conn, $user_email) {
     <script src="../JS/script.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../CSS/style.css">
 </head>

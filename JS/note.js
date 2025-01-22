@@ -111,15 +111,22 @@ function popup(existingText = "", noteId = null, existingTitle = "") {
         theme: "snow",
         modules: {
             toolbar: [
+                [{ 'font': [] }],
+                [{ 'size': [] }],
                 ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'header': 1 }, { 'header': 2 }],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                 [{ 'color': [] }, { 'background': [] }],
+                [{ 'script': 'sub' }, { 'script': 'super' }],
+                [{ 'header': 1 }, { 'header': 2 }, { 'header': [3, 4, 5, 6, false] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }],
+                ['blockquote', 'code-block'],
+                [{ 'align': [] }],
+                ['link', 'image', 'video'],
                 ['clean']
             ]
         }
     });
+    
 
     // Add dark mode support for Quill editor
     const theme = localStorage.getItem('theme');
@@ -245,16 +252,55 @@ function initializeDropZones() {
     });
 }
 
-// Upload files
+// Add these functions to note.js
+
+// Delete file function
+function deleteFile(fileId, noteId) {
+    if (confirm('Are you sure you want to delete this file?')) {
+        $.ajax({
+            url: window.location.href,
+            method: 'POST',
+            data: {
+                action: 'deleteFile',
+                fileId: fileId
+            },
+            success: function(response) {
+                const result = JSON.parse(response);
+                if (result.success) {
+                    // Refresh the notes to update the file list
+                    loadNotes();
+                } else {
+                    alert('Failed to delete file: ' + (result.error || 'Unknown error'));
+                }
+            },
+            error: function() {
+                alert('Failed to delete file');
+            }
+        });
+    }
+}
+
+// Modify the uploadFiles function
 function uploadFiles(files, dropZoneElement) {
     const noteId = dropZoneElement.closest('.card').dataset.noteId;
     const formData = new FormData();
     
+    // Validate files before upload
     for (const file of files) {
+        // Check file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+            return;
+        }
         formData.append('files[]', file);
     }
+    
     formData.append('action', 'upload');
     formData.append('noteId', noteId);
+
+    // Show loading state
+    const fileList = dropZoneElement.previousElementSibling;
+    fileList.innerHTML = '<div class="text-center">Uploading...</div>';
 
     $.ajax({
         url: window.location.href,
@@ -263,17 +309,43 @@ function uploadFiles(files, dropZoneElement) {
         processData: false,
         contentType: false,
         success: function(response) {
-            updateFileList(noteId, JSON.parse(response));
+            try {
+                // Handle both string and parsed JSON responses
+                const result = typeof response === 'string' ? JSON.parse(response) : response;
+                
+                if (result.success) {
+                    updateFileList(noteId, result.files);
+                } else {
+                    alert('Upload failed: ' + (result.error || 'Unknown error'));
+                    fileList.innerHTML = ''; // Clear the loading message
+                }
+            } catch (e) {
+                console.error('Error parsing server response:', e);
+                alert('Upload failed: Invalid server response');
+                fileList.innerHTML = ''; // Clear the loading message
+            }
         },
-        error: function() {
-            alert('Failed to upload files');
+        error: function(xhr, status, error) {
+            console.error('Upload error:', error);
+            alert('Failed to upload files: ' + error);
+            fileList.innerHTML = ''; // Clear the loading message
         }
     });
 }
 
-// Update file list display
+// Modify the updateFileList function
 function updateFileList(noteId, files) {
     const fileList = document.querySelector(`[data-note-id="${noteId}"] .file-list`);
+    if (!fileList) {
+        console.error('File list container not found');
+        return;
+    }
+    
+    if (!Array.isArray(files) || files.length === 0) {
+        fileList.innerHTML = '';
+        return;
+    }
+
     fileList.innerHTML = files.map(file => `
         <div class="file-item">
             <span>${file.name}</span>

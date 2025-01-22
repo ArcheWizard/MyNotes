@@ -60,6 +60,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':id' => $id,
                 ':email' => $user_email
             ]);
+        } elseif ($action === 'updateOrder'){
+            $orderData = json_decode($_POST['order'], true);
+                foreach ($orderData as $item) {
+                    $stmt = $conn->prepare("UPDATE note SET display_order = :order WHERE id = :id AND email = :email");
+                    $stmt->execute([
+                        ':order' => $item['order'],
+                        ':id' => $item['id'],
+                        ':email' => $user_email
+                    ]);
+                }
+
+        } elseif ($action === 'upload'){
+            $noteId = $_POST['noteId'];
+                $uploadDir = '../Uploads/';
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $files = [];
+                foreach ($_FILES['files']['tmp_name'] as $key => $tmp_name) {
+                    $fileName = $_FILES['files']['name'][$key];
+                    $fileSize = $_FILES['files']['size'][$key];
+                    $fileType = $_FILES['files']['type'][$key];
+                    $filePath = $uploadDir . uniqid() . '_' . $fileName;
+
+                    if (move_uploaded_file($tmp_name, $filePath)) {
+                        $stmt = $conn->prepare("INSERT INTO attachments (note_id, file_name, file_path, file_type, file_size) VALUES (:note_id, :file_name, :file_path, :file_type, :file_size)");
+                        $stmt->execute([
+                            ':note_id' => $noteId,
+                            ':file_name' => $fileName,
+                            ':file_path' => $filePath,
+                            ':file_type' => $fileType,
+                            ':file_size' => $fileSize
+                        ]);
+                        
+                        $files[] = [
+                            'id' => $conn->lastInsertId(),
+                            'name' => $fileName
+                        ];
+                    }
+                }
+                echo json_encode($files);
+            
         }
     }
     exit;
@@ -79,14 +122,22 @@ function fetchNotes($conn, $user_email) {
     if ($stmt->execute()) {
         if ($stmt->rowCount() > 0) {
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                echo '<div class="card shadow-sm mb-3">
-                        <div class="card-body">
+                echo '<div class="card shadow-sm mb-3" data-note-id="' . $row['id'] . '">
+                    <div class="card-body">
+                        <div class="drag-handle">☰</div>
                             <h3>' . htmlspecialchars($row['title']) . '</h3>
                             <div class="note-content">' . $row['text'] . '</div>
+                            <div class="file-drop-zone">
+                                <div class="file-list"></div>
+                                <div class="drop-zone">
+                                    <span class="drop-zone__prompt">Drop files here or click to upload</span>
+                                    <input type="file" class="drop-zone__input" multiple>
+                                </div>
+                            </div>
                             <button class="btn btn-primary btn-sm" onclick="popup(`' . htmlspecialchars($row['text'], ENT_QUOTES) . '`, ' . $row['id'] . ', `' . htmlspecialchars($row['title'], ENT_QUOTES) . '`)">Edit</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteNote(' . $row['id'] . ')">Delete</button>
                         </div>
-                      </div>';
+                    </div>';
             }
         } else {
             echo '<p class="text-muted">No notes to display. Add a new note!</p>';
@@ -108,6 +159,7 @@ function fetchNotes($conn, $user_email) {
     <title>User Notes</title>
     <script src="../JS/note.js"></script>
     <script src="../JS/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
@@ -158,7 +210,7 @@ function fetchNotes($conn, $user_email) {
                         </div>
                     </div>
                     <!-- Notes List -->
-                    <div id="notelist">
+                    <div id="notelist" class="sortable-notes">
                         <!-- Notes will be dynamically added here -->
                         <?php fetchNotes($conn, $user_email); ?>
                     </div>

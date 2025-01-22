@@ -182,6 +182,68 @@ p {
     color: #555; /* Muted Gray */
 }
 
+.sortable-notes .card {
+    cursor: move;
+}
+
+.drag-handle {
+    cursor: move;
+    padding: 5px;
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.file-drop-zone {
+    margin: 15px 0;
+    padding: 10px;
+}
+
+.drop-zone {
+    width: 100%;
+    min-height: 100px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    background-color: var(--bg-primary);
+    position: relative;
+    transition: border .3s ease-in-out;
+}
+
+.drop-zone:hover {
+    border-color: #0958d7;
+}
+
+.drop-zone.drop-zone--over {
+    border-style: solid;
+}
+
+.drop-zone__input {
+    display: none;
+}
+
+.drop-zone__prompt {
+    color: #999;
+}
+
+.file-list {
+    margin-bottom: 10px;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    margin: 5px 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+}
+
 /* Add these at the end of style.css */
 :root {
     /* Light mode variables */

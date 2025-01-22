@@ -176,3 +176,109 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeDarkMode('#checkbox');
 });
 
+// Initialize Sortable
+document.addEventListener('DOMContentLoaded', function() {
+    const noteList = document.querySelector('.sortable-notes');
+    new Sortable(noteList, {
+        animation: 150,
+        handle: '.drag-handle',
+        onEnd: function(evt) {
+            updateNoteOrder();
+        }
+    });
+    
+    initializeDropZones();
+});
+
+// Update note order in database
+function updateNoteOrder() {
+    const notes = document.querySelectorAll('.sortable-notes .card');
+    const orderData = Array.from(notes).map((note, index) => ({
+        id: note.dataset.noteId,
+        order: index
+    }));
+
+    $.post(window.location.href, {
+        action: 'updateOrder',
+        order: JSON.stringify(orderData)
+    }).fail(function() {
+        alert('Failed to update note order');
+    });
+}
+
+// Initialize drop zones
+function initializeDropZones() {
+    document.querySelectorAll('.drop-zone__input').forEach(inputElement => {
+        const dropZoneElement = inputElement.closest('.drop-zone');
+
+        dropZoneElement.addEventListener('click', e => {
+            inputElement.click();
+        });
+
+        inputElement.addEventListener('change', e => {
+            if (inputElement.files.length) {
+                uploadFiles(inputElement.files, dropZoneElement);
+            }
+        });
+
+        dropZoneElement.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZoneElement.classList.add('drop-zone--over');
+        });
+
+        ['dragleave', 'dragend'].forEach(type => {
+            dropZoneElement.addEventListener(type, e => {
+                dropZoneElement.classList.remove('drop-zone--over');
+            });
+        });
+
+        dropZoneElement.addEventListener('drop', e => {
+            e.preventDefault();
+            
+            if (e.dataTransfer.files.length) {
+                inputElement.files = e.dataTransfer.files;
+                uploadFiles(e.dataTransfer.files, dropZoneElement);
+            }
+
+            dropZoneElement.classList.remove('drop-zone--over');
+        });
+    });
+}
+
+// Upload files
+function uploadFiles(files, dropZoneElement) {
+    const noteId = dropZoneElement.closest('.card').dataset.noteId;
+    const formData = new FormData();
+    
+    for (const file of files) {
+        formData.append('files[]', file);
+    }
+    formData.append('action', 'upload');
+    formData.append('noteId', noteId);
+
+    $.ajax({
+        url: window.location.href,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            updateFileList(noteId, JSON.parse(response));
+        },
+        error: function() {
+            alert('Failed to upload files');
+        }
+    });
+}
+
+// Update file list display
+function updateFileList(noteId, files) {
+    const fileList = document.querySelector(`[data-note-id="${noteId}"] .file-list`);
+    fileList.innerHTML = files.map(file => `
+        <div class="file-item">
+            <span>${file.name}</span>
+            <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id}, ${noteId})">Delete</button>
+        </div>
+    `).join('');
+}
+

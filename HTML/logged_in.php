@@ -219,7 +219,7 @@ function fetchNotes($conn, $user_email) {
         </div>
     </section>
 
-    <footer id="footy" class="text-center py-3 bg-light mt-auto">
+    <footer class="text-center py-3 bg-light mt-auto">
         <p class="mb-0 text-muted">&copy; 2024 My Notes</p>
     </footer>
 

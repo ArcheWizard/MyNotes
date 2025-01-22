@@ -266,7 +266,7 @@ p {
 }
 
 /* Update existing styles to use variables */
-html, body, footer {
+html, body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
 }
@@ -285,13 +285,12 @@ html, body, footer {
     border-color: var(--border-color);
 }
 
-.card-text, .text-muted {
-    color: var(--text-primary) !important;
+.bg-light{
+    background-color: var(--bg-primary) !important;
 }
 
-.footy{
-    background-color: var(--card-bg);
-    color: var(--text-primary);
+.card-text, .text-muted {
+    color: var(--text-primary) !important;
 }
 
 /* Update these styles in style.css */

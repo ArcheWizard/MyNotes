@@ -2,7 +2,7 @@
 session_start();
 include("../PHP/connect.php");
 
-// Check if admin is logged in (you'll need to implement admin authentication)
+// Check if admin is logged in
 if (!isset($_SESSION["admin_email"])) {
     header("Location: login.php");
     exit;
@@ -18,48 +18,67 @@ function getUserAnalytics($conn) {
     $analytics['total_users'] = $stmt->fetch(PDO::FETCH_ASSOC)['total_users'];
 
     // Notes Statistics
-    $stmt = $conn->prepare("SELECT 
-        COUNT(*) as total_notes, 
-        COUNT(DISTINCT email) as users_with_notes,
-        AVG(notes_count) as avg_notes_per_user
-    FROM (
-        SELECT email, COUNT(*) as notes_count 
-        FROM note 
-        GROUP BY email
-    ) user_notes");
+    $stmt = $conn->prepare("SELECT COUNT(*) as total_notes, COUNT(DISTINCT email) as users_with_notes, 
+                            ROUND(COUNT(*) / COUNT(DISTINCT email), 2) as avg_notes_per_user FROM note");
     $stmt->execute();
     $notesStats = $stmt->fetch(PDO::FETCH_ASSOC);
     $analytics['total_notes'] = $notesStats['total_notes'];
     $analytics['users_with_notes'] = $notesStats['users_with_notes'];
-    $analytics['avg_notes_per_user'] = round($notesStats['avg_notes_per_user'], 2);
+    $analytics['avg_notes_per_user'] = $notesStats['avg_notes_per_user'] ?? 0;
 
     // Recent Activity
-    $stmt = $conn->prepare("SELECT 
-        email, 
-        MAX(created_at) as last_activity, 
-        COUNT(*) as recent_notes 
-    FROM note 
-    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
-    GROUP BY email 
-    ORDER BY recent_notes DESC 
-    LIMIT 10");
+    $stmt = $conn->prepare("SELECT email, MAX(created_at) as last_activity, COUNT(*) as recent_notes 
+                            FROM note 
+                            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
+                            GROUP BY email 
+                            ORDER BY recent_notes DESC 
+                            LIMIT 10");
+
     $stmt->execute();
     $analytics['recent_activity'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // File Attachments
+    // File Attachments (Placeholder: Modify if you implement file attachments)
     $stmt = $conn->prepare("SELECT 
         COUNT(*) as total_attachments, 
         SUM(file_size)/1024/1024 as total_storage_mb 
     FROM attachments");
     $stmt->execute();
     $fileStats = $stmt->fetch(PDO::FETCH_ASSOC);
-    $analytics['total_attachments'] = $fileStats['total_attachments'];
-    $analytics['total_storage_mb'] = round($fileStats['total_storage_mb'], 2);
+    $analytics['total_attachments'] = $fileStats['total_attachments'] ?? 0;
+    $analytics['total_storage_mb'] = $fileStats['total_storage_mb'] !== null 
+        ? round($fileStats['total_storage_mb'], 2) 
+        : 0;
 
     return $analytics;
 }
 
+function getUserGrowthData($conn) {
+    $stmt = $conn->prepare("SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as user_count 
+                            FROM client 
+                            GROUP BY month 
+                            ORDER BY month ASC");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getNotesDistributionData($conn) {
+    $stmt = $conn->prepare("SELECT 
+        SUM(CASE WHEN notes_count BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as '0-5',
+        SUM(CASE WHEN notes_count BETWEEN 6 AND 10 THEN 1 ELSE 0 END) as '6-10',
+        SUM(CASE WHEN notes_count BETWEEN 11 AND 20 THEN 1 ELSE 0 END) as '11-20',
+        SUM(CASE WHEN notes_count > 20 THEN 1 ELSE 0 END) as '20+' 
+    FROM (
+        SELECT email, COUNT(*) as notes_count FROM note GROUP BY email
+    ) as note_counts");
+
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 $analytics = getUserAnalytics($conn);
+$userGrowthData = getUserGrowthData($conn);
+$notesDistributionData = getNotesDistributionData($conn);
+
 ?>
 
 <!DOCTYPE html>
@@ -150,10 +169,10 @@ $analytics = getUserAnalytics($conn);
         new Chart(userGrowthCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: <?php echo json_encode(array_column($userGrowthData, 'month')); ?>,
                 datasets: [{
                     label: 'User Growth',
-                    data: [12, 19, 3, 5, 2, 3],
+                    data: <?php echo json_encode(array_column($userGrowthData, 'user_count')); ?>,
                     borderColor: 'rgb(75, 192, 192)',
                     tension: 0.1
                 }]
@@ -167,7 +186,12 @@ $analytics = getUserAnalytics($conn);
             data: {
                 labels: ['0-5 Notes', '6-10 Notes', '11-20 Notes', '20+ Notes'],
                 datasets: [{
-                    data: [300, 50, 100, 75],
+                    data: [
+                        <?php echo $notesDistributionData['0-5']; ?>,
+                        <?php echo $notesDistributionData['6-10']; ?>,
+                        <?php echo $notesDistributionData['11-20']; ?>,
+                        <?php echo $notesDistributionData['20+']; ?>
+                    ],
                     backgroundColor: [
                         'rgb(255, 99, 132)',
                         'rgb(54, 162, 235)',

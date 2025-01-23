@@ -4,7 +4,7 @@ include("../PHP/connect.php");
 
 // Check if admin is logged in
 if (!isset($_SESSION["admin_email"])) {
-    header("Location: login.php");
+    header("Location: admin_login.php");
     exit;
 }
 

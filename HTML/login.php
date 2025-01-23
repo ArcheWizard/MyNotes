@@ -1,6 +1,20 @@
 <?php
 
 include("../PHP/connect.php");
+require_once '../../Dependencies/google-api-php-client/src/Google/autoload.php';
+
+// Initialize Google Client
+$client = new Google_Client();
+$client->setClientId('YOUR_GOOGLE_CLIENT_ID');
+$client->setClientSecret('YOUR_GOOGLE_CLIENT_SECRET');
+$client->setRedirectUri('http://localhost/TP3%20(Projet)/HTML/google_callback.php');
+$client->addScope("email");
+$client->addScope("profile");
+
+// Create the Google Sign-In URL
+$authUrl = $client->createAuthUrl();
+
+// Rest of your existing login.php code...
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -120,6 +134,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="display-6">
                     <button type="submit" class="btn btn-primary">Log in</button>
                     <button type="button" onclick="goHome()" class="btn btn-outline-primary">Go Back to Home</button>
+                </div>
+                <div class="mt-3 text-center">
+                    <p>Or sign in with:</p>
+                    <a href="<?php echo $client->createAuthUrl(); ?>" class="btn btn-danger">
+                    <i class="fab fa-google"></i> Sign in with Google
+                    </a>
                 </div>
             </form>
     </div>

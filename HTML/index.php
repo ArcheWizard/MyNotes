@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+// Check for logout message
+if(isset($_SESSION['logout_message'])) {
+    echo '<div class="alert alert-success">' . $_SESSION['logout_message'] . '</div>';
+    unset($_SESSION['logout_message']); // Clear the message
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,9 +28,15 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="signup.php">Sign Up</a></li>
-                    <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="login.php">Login</a></li>
-                    <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="contact.php">Contact Us</a></li>
+                    <!-- In the navbar, change the authentication-based navigation -->
+                    <?php if(isset($_SESSION["user_email"])): ?>
+                        <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="logged_in.php">Notes</a></li>
+                        <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="../PHP/disconnect.php">Log Out</a></li>
+                    <?php else: ?>
+                        <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="signup.php">Sign Up</a></li>
+                        <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="login.php">Login</a></li>
+                        <li class="nav-item"><a class="btn btn-outline-light mx-2 link-button" href="contact.php">Contact Us</a></li>
+                    <?php endif; ?>
                     <li class="nav-item theme-switch-wrapper">
                         <label class="theme-switch" for="checkbox">
                             <input type="checkbox" id="checkbox" />
@@ -35,7 +50,7 @@
 
     <header class="header-section">
         <div class="container text-center py-5">
-            <h1 class="fw-bold mb-3">Welcome to My Notes</h1>
+            <h1 class="fw-bold mb-3">Welcome to My Notes <?php if(isset($_SESSION["user_email"])): echo $_SESSION['user_name']; endif; ?></h1>
             <p class="mb-4">Secure and user-friendly note-taking made simple.</p>
             <a href="signup.php" class="btn btn-primary link-button">Get Started</a>
         </div>

@@ -1,6 +1,6 @@
 <?php
-include("../PHP/connect.php");
-require_once '../../Dependencies/google-api-php-client/src/Google/autoload.php';
+/*include("../PHP/connect.php");
+require_once '../vendor/autoload.php';
 
 session_start();
 
@@ -58,3 +58,4 @@ if (isset($_GET['code'])) {
 } else {
     echo "Authentication failed.";
 }
+

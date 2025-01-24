@@ -1,7 +1,7 @@
 <?php
 
 include("../PHP/connect.php");
-require_once '../../Dependencies/google-api-php-client/src/Google/autoload.php';
+/*require_once '../vendor/google/auth/autoload.php';
 
 // Initialize Google Client
 $client = new Google_Client();
@@ -12,7 +12,7 @@ $client->addScope("email");
 $client->addScope("profile");
 
 // Create the Google Sign-In URL
-$authUrl = $client->createAuthUrl();
+$authUrl = $client->createAuthUrl();*/
 
 // Rest of your existing login.php code...
 
